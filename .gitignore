@@ -12,3 +12,4 @@ pyrightconfig.json
 tests/datasets
 tempfiles
 dev
+models
