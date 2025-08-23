@@ -1,0 +1,20 @@
+[project]
+name = "arm64-asr"
+version = "0.1.0"
+description = "ASR for AArch64 with CUDA"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "ctranslate2",
+    "numpy==1.26.4",
+    "torch==2.8.0",
+    "torchvision==0.23.0",
+    "whisperx>=3.3.1",
+]
+
+[tool.uv.sources]
+ctranslate2 = { path = "packages/ctranslate2-4.4.0-cp310-cp310-linux_aarch64.whl" }
+
+[[tool.uv.index]]
+url = "https://pypi.jetson-ai-lab.io/jp6/cu126"
+default = true
