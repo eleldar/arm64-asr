@@ -1,3 +1,4 @@
+import os
 import gc
 import torch
 import whisperx
@@ -49,11 +50,25 @@ result = whisperx.align(
 gc.collect()
 torch.cuda.empty_cache()
 del model
+
+# dictors
+model = whisperx.diarize.DiarizationPipeline(
+    use_auth_token=os.getenv("HF_TOKEN"), 
+    device=device
+)
+# add min/max number of speakers if known
+# diarize_model(audio, min_speakers=min_speakers, max_speakers=max_speakers)
+diarize_segments = model(audio)
+
 gc.collect()
 torch.cuda.empty_cache()
 if "model" in locals() or "model" in globals():
     del model
 gc.collect()
 
-
+# result
+result = whisperx.assign_word_speakers(diarize_segments, result)
+with open("result.txt", "w") as f:
+    f.write(str(result))
+print(diarize_segments)
 print(result["segments"])
