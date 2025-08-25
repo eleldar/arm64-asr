@@ -13,3 +13,4 @@ tests/datasets
 tempfiles
 dev
 models
+.env
