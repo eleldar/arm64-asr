@@ -32,7 +32,10 @@ class Config(BaseModel):
     temperature: float = Field(0.0)
     language_code: str = Field("ru")
     prompt: str | None = Field(None)
-    model_dir: Path = Path("./models").resolve()
+    recognition_model_dir: Path = Path("/mnt/data/models/recognition").resolve()
+    alignment_model_dir: Path = Path("/mnt/data/models/alignment").resolve()
+    diarization_model_path: Path = Path("/mnt/data/models/diarization/speaker-diarization-3.1/config.yaml").resolve()
+
     hallucination_words: List[str] = ["DimaTorzok"]
 
 

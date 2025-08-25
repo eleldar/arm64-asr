@@ -45,7 +45,7 @@ def _transcribe(audio: np.ndarray) -> Dict[str, Any]:
             device=state.device,
             compute_type=state.compute_type,
             asr_options={"temperatures": state.temperature, "initial_prompt": state.prompt},
-            download_root=str(state.model_dir)
+            download_root=str(state.recognition_model_dir)
         )
         result = model.transcribe(
             audio=audio, batch_size=state.batch_size, 
@@ -71,7 +71,7 @@ def _align(audio: np.ndarray, transcription: Dict[str, Any]) -> Dict[str, Any]:
         model, metadata = whisperx.load_align_model(
             language_code=language_code, 
             device=state.device, 
-            model_dir=state.model_dir
+            model_dir=state.alignment_model_dir
         )
         result = whisperx.align(
             segments, model, metadata, audio, state.device, 
@@ -91,8 +91,8 @@ def _align(audio: np.ndarray, transcription: Dict[str, Any]) -> Dict[str, Any]:
 def _diarize(audio: np.ndarray, transcription: Dict[str, Any]) -> Dict[str, Any]:
     logger.info("Start diarize")
     try:
-        model = whisperx.diarize.DiarizationPipeline(
-            use_auth_token=os.getenv("HF_TOKEN"), 
+        model = whisperx.DiarizationPipeline(
+            model_name=str(state.diarization_model_path), 
             device=state.device
         )
         diarize_segments = model(audio) # diarize_model(audio, min_speakers=min_speakers, max_speakers=max_speakers)
