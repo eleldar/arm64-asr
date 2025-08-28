@@ -6,6 +6,7 @@ import time
 import wave
 import logging
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from dotenv import load_dotenv
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -15,6 +16,8 @@ from streamlit_mic_recorder import mic_recorder
 from src.config import state
 from src.summarizer import summary
 from src.transcriber import transcribe
+
+load_dotenv()
 
 # ---------------- helpers ----------------
 
