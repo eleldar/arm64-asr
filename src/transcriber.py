@@ -13,7 +13,7 @@ from src.config import state
 
 logger = logging.getLogger(__name__)
 
-def transcript(path: Path, offset: float | None = None) -> Dict[str, Any]:
+def transcribe(path: Path, offset: float | None = None) -> str:
     offset = offset if offset else os.stat(path).st_ctime
     audio = _get_array(path)
     transcription = _align(audio, _transcribe(audio))
@@ -23,7 +23,9 @@ def transcript(path: Path, offset: float | None = None) -> Dict[str, Any]:
     gc.collect()
     segments = _filter(transcription.get("segments", []))
     result = _get_result(segments, offset)
-    return result
+    text = result.get("text", "")
+    logger.info(f"{text=}")
+    return text
 
 def _get_array(path: Path) -> np.ndarray:
     logger.info("Start get array")
@@ -39,6 +41,7 @@ def _get_array(path: Path) -> np.ndarray:
 
 def _transcribe(audio: np.ndarray) -> Dict[str, Any]:
     logger.info("Start transcribe")
+    transcription = {"language": state.language_code, "segments": []}
     try:
         model = whisperx.load_model(
             state.model_mapping.get(state.model, "large-v3"), 
@@ -55,16 +58,17 @@ def _transcribe(audio: np.ndarray) -> Dict[str, Any]:
         torch.cuda.empty_cache()
         while ("model" in locals() or "model" in globals()):
             del model
-        return dict(result)
+        transcription = dict(result)
     except Exception as error:
         logger.exception(f"Failed transcribe: {error=}")
-        return {"language": state.language_code, "segments": []}
     finally:
-        logger.info("Finish transcribe")
+        logger.info(f"Finish transcribe: {transcription=}")
+        return transcription
         
 
 def _align(audio: np.ndarray, transcription: Dict[str, Any]) -> Dict[str, Any]:
     logger.info("Start align")
+    align = transcription
     try:
         segments = transcription.get("segments", [])
         language_code = transcription.get("language", state.language_code)
@@ -81,15 +85,16 @@ def _align(audio: np.ndarray, transcription: Dict[str, Any]) -> Dict[str, Any]:
         torch.cuda.empty_cache()
         while ("model" in locals() or "model" in globals()):
             del model
-        return dict(result)
+        align = dict(result) if result.get("segments") else transcription
     except Exception as error:
         logger.exception(f"Failed align: {error=}")
-        return transcription
     finally:
-        logger.info("Finish align")
+        logger.info(f"Finish align: {align=}")
+        return align
 
 def _diarize(audio: np.ndarray, transcription: Dict[str, Any]) -> Dict[str, Any]:
     logger.info("Start diarize")
+    diarize = transcription
     try:
         model = whisperx.DiarizationPipeline(
             model_name=str(state.diarization_model_path), 
@@ -101,15 +106,16 @@ def _diarize(audio: np.ndarray, transcription: Dict[str, Any]) -> Dict[str, Any]
         torch.cuda.empty_cache()
         while ("model" in locals() or "model" in globals()):
             del model
-        return result
+        diarize = result
     except Exception as error:
         logger.exception(f"Failed diarize: {error=}")
-        return transcription
     finally:
-        logger.info("Finish diarize")
+        logger.info(f"Finish diarize: {diarize=}")
+        return diarize
     
 def _filter(transcription: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     logger.info("Start filter")
+    filter = []
     try:
         result = [
             {'speaker': row['speaker'], 'text': row['text'].strip(), 'start': row['start'], 'end': row['end']} 
@@ -119,12 +125,13 @@ def _filter(transcription: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
                 not any([word.lower() in row['text'].lower() for word in state.hallucination_words])
             )    
         ]
-        return result
+        filter = result
     except Exception as error:
         logger.exception(f"Failed filter: {error=}")
         return []
     finally:
-        logger.info("Finish filter")
+        logger.info(f"Finish filter: {filter=}")
+        return filter
 
 def _format_time(seconds: float) -> str:
     dt = datetime.fromtimestamp(seconds)

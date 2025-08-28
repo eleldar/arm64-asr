@@ -1,5 +1,6 @@
 import os
 import asyncio
+import logging
 from typing import List, Union, Sequence
 
 from dotenv import load_dotenv
@@ -11,12 +12,26 @@ from langchain_text_splitters import TokenTextSplitter
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 llm = ChatOpenAI(model=os.getenv("OPENAI_BASE_MODEL"), temperature=0)
 
 token_max = 1024
 text_splitter = TokenTextSplitter(
     chunk_size=token_max, chunk_overlap=32
 )
+
+
+def summary(text: str) -> str:
+    if text.strip():
+        docs = [Document(page_content=text)]
+        summary = asyncio.run(_summary(docs))
+    else:
+        summary = ""
+    logger.info(f"{summary=}")
+    return summary
+
+    
 
 def length_function(documents: List[Document]) -> int:
     length = sum(llm.get_num_tokens(doc.page_content) for doc in documents)
@@ -35,34 +50,22 @@ async def reduce_chunks(input_chunks: Sequence[Union[Document, str]]) -> str:
     else:
         content = "\n\n".join(input_chunks)
     prompt = reduce_prompt.invoke({"content": content})
-    resp = await llm.ainvoke(prompt)
-    return resp.content
+    response = await llm.ainvoke(prompt)
+    return response.content
 
-async def main(docs) -> str:
+async def _summary(docs) -> str:
     chunks = text_splitter.split_documents(docs)
-    # 1-й уровень: параллельное схлопывание чанков
     doc_lists = split_list_of_docs(chunks, length_function, token_max)
-    print(len(doc_lists))
+    logger.info(f"{len(doc_lists)=}")
     summaries = await asyncio.gather(
         *[acollapse_docs(doc_list, reduce_chunks) for doc_list in doc_lists]
     )
-    print([llm.get_num_tokens(summary.page_content) for summary in summaries])
-    # Иерархическое слияние без синхронных блокировок
     while length_function(summaries) > token_max:
         doc_lists = split_list_of_docs(summaries, length_function, token_max)
-        print(len(doc_lists))
+        logger.info(f"{len(doc_lists)=}")
         summaries = await asyncio.gather(
             *[acollapse_docs(doc_list, reduce_chunks) for doc_list in doc_lists]
         )
-        print([llm.get_num_tokens(summary.page_content) for summary in summaries])
     summary = await reduce_chunks(summaries)
-    print(llm.get_num_tokens(summary))
+    logger.info(f"{llm.get_num_tokens(summary)=}")
     return summary
-
-if __name__ == "__main__":
-    with open("tests/datasets/long_text.txt") as f:
-        content = f.read()
-    docs = [Document(page_content=content)]
-    result = asyncio.run(main(docs))
-    assert isinstance(result, str)
-    print(result)

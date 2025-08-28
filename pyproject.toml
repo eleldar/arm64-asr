@@ -14,6 +14,8 @@ dependencies = [
     "openai>=1.101.0",
     "pydantic>=2.11.7",
     "python-dotenv>=1.1.1",
+    "streamlit>=1.49.0",
+    "streamlit-mic-recorder>=0.0.8",
     "torch==2.8.0",
     "torchvision==0.23.0",
     "whisperx>=3.3.1",
