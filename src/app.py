@@ -238,7 +238,7 @@ start_btn = st.button(
 )
 
 if start_btn and (source_path is not None) and (st.session_state.job is None):
-    st.session_state.est_sec = source_dur * 1 # 10 мин аудио → 5 мин
+    st.session_state.est_sec = 0.43 * source_dur + 60 # 10 мин аудио → 5 мин
     st.session_state.t_start = time.time()
     st.session_state.job = st.session_state.exec.submit(_run_pipeline, source_path)
 
