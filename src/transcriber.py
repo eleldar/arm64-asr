@@ -24,7 +24,6 @@ def transcribe(path: Path, offset: float | None = None) -> str:
     segments = _filter(transcription.get("segments", []))
     result = _get_result(segments, offset)
     text = result.get("text", "")
-    logger.info(f"{text=}")
     return text
 
 def _get_array(path: Path) -> np.ndarray:
@@ -62,7 +61,7 @@ def _transcribe(audio: np.ndarray) -> Dict[str, Any]:
     except Exception as error:
         logger.exception(f"Failed transcribe: {error=}")
     finally:
-        logger.info(f"Finish transcribe: {transcription=}")
+        logger.info("Finish transcribe")
         return transcription
         
 
@@ -89,7 +88,7 @@ def _align(audio: np.ndarray, transcription: Dict[str, Any]) -> Dict[str, Any]:
     except Exception as error:
         logger.exception(f"Failed align: {error=}")
     finally:
-        logger.info(f"Finish align: {align=}")
+        logger.info("Finish align")
         return align
 
 def _diarize(audio: np.ndarray, transcription: Dict[str, Any]) -> Dict[str, Any]:
@@ -110,7 +109,7 @@ def _diarize(audio: np.ndarray, transcription: Dict[str, Any]) -> Dict[str, Any]
     except Exception as error:
         logger.exception(f"Failed diarize: {error=}")
     finally:
-        logger.info(f"Finish diarize: {diarize=}")
+        logger.info("Finish diarize")
         return diarize
     
 def _filter(transcription: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -130,7 +129,7 @@ def _filter(transcription: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         logger.exception(f"Failed filter: {error=}")
         return []
     finally:
-        logger.info(f"Finish filter: {filter=}")
+        logger.info("Finish filter")
         return filter
 
 def _format_time(seconds: float) -> str:

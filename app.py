@@ -85,13 +85,12 @@ if st.session_state.job is not None:
 
         transcript_text, resume_text = st.session_state.job.result(timeout=5)
         progress.progress(100, text="")
-        logger.info("transcript_text len=%s, resume_text len=%s", len(transcript_text), len(resume_text))
 
         combined = (
-            "АННОТАЦИЯ\n"
+            "АННОТАЦИЯ. "
             + resume_text.strip()
-            + "\n\n────────────────────────────────────────\n\n"
-            + "ПРОТОКОЛ\n"
+            + "\n\nПРОТОКОЛ"
+            + "\n────────────────────────────────────────\n"
             + transcript_text.strip()
         ) if transcript_text.strip() else "Речь не обнаружена!"
         st.text_area("Результат", combined, height=600, label_visibility="hidden")
