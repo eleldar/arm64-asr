@@ -14,12 +14,13 @@ from src.state import (
 from src.ui.record import render_record_section
 from src.ui.upload import render_upload_section
 from src.services.pipeline import run_pipeline
+from src.utils.progress import get_total_time
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 st.set_page_config(page_title="TMG", layout="centered")
-st.title("Документирование встреч")
+st.title("Документирование встречи")
 
 init_state()
 
@@ -64,7 +65,7 @@ start_btn = st.button(
 
 if start_btn and (source_path is not None) and (st.session_state.job is None):
     # простая эвристика времени обработки
-    st.session_state.est_sec = 0.43 * source_dur + 60  # 10 мин аудио → ~5 мин
+    st.session_state.est_sec = get_total_time(source_dur)
     st.session_state.t_start = time.time()
     st.session_state.job = st.session_state.exec.submit(run_pipeline, source_path)
 
@@ -92,7 +93,7 @@ if st.session_state.job is not None:
             + "\n\n────────────────────────────────────────\n\n"
             + "ПРОТОКОЛ\n"
             + transcript_text.strip()
-        )
+        ) if transcript_text.strip() else "Речь не обнаружена!"
         st.text_area("Результат", combined, height=600, label_visibility="hidden")
     except TimeoutError as e:
         st.error(str(e))
