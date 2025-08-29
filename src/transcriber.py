@@ -46,7 +46,7 @@ def _transcribe(audio: np.ndarray) -> Dict[str, Any]:
             state.model_mapping.get(state.model, "large-v3"), 
             device=state.device,
             compute_type=state.compute_type,
-            asr_options={"temperatures": state.temperature, "initial_prompt": state.prompt},
+            asr_options={"temperatures": 0, "initial_prompt": state.prompt},
             download_root=str(state.recognition_model_dir)
         )
         result = model.transcribe(

@@ -29,12 +29,14 @@ class Config(BaseModel):
     device: str = Field("cuda")
     batch_size: int = Field(6)
     compute_type: str = Field("float16")
-    temperature: float = Field(0.0)
+    temperature: float = Field(0.2)
     language_code: str = Field("ru")
     prompt: str | None = Field(None)
     recognition_model_dir: Path = Path("/mnt/data/models/recognition").resolve()
     alignment_model_dir: Path = Path("/mnt/data/models/alignment").resolve()
     diarization_model_path: Path = Path("/mnt/data/models/diarization/speaker-diarization-3.1/config.yaml").resolve()
+    token_coefficient: int = Field(3)
+    max_tokens: int = Field(2048)
 
     hallucination_words: List[str] = ["DimaTorzok"]
 
