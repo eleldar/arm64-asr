@@ -118,10 +118,10 @@ def _filter(transcription: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     filter = []
     try:
         result = [
-            {'speaker': row['speaker'], 'text': row['text'].strip(), 'start': row['start'], 'end': row['end']} 
+            {'speaker': row['speaker'], 'text': row['text'].strip(), 'start': row.get('start', 0.0), 'end': row.get('end', 0.0)} 
             for row in transcription
             if (
-                row['text'].strip() and
+                row.get('text','').strip() and row.get('speaker') and
                 not any([word.lower() in row['text'].lower() for word in state.hallucination_words])
             )    
         ]
